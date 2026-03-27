@@ -498,7 +498,7 @@ theme:
         <ul>
           <li>📋 <strong>Experiment documentation</strong> — Markdown logs capture exactly how experiments were run</li>
           <li>🧬 <strong>Model cards</strong> — standardized Markdown format ensures reproducible model reporting</li>
-          <li>📦 <strong>Environment documentation</strong> — files explain setup</li>
+          <li>📦 <strong>Environment documentation</strong> — <code>requirements.txt</code> and <code>environment.yml</code> files explain setup</li>
           <li>🔬 <strong>Research papers → Markdown</strong> — tools like <strong>Pandoc</strong> convert academic papers to/from MD</li>
           <li>🏆 <strong>ML competitions</strong> — Kaggle and DrivenData require Markdown notebooks for submissions</li>
         </ul>
@@ -571,7 +571,7 @@ theme:
         function prev() { showSlide(current - 1); }
 
         document.addEventListener('keydown', function (e) {
-          if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); next(); }
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
           if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
           if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
           if (e.key === 'End') { e.preventDefault(); showSlide(total - 1); }
