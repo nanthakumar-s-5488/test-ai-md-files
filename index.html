@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MD Files in AI — Presentation</title>
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: #111;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      /* Slide container */
+      .slide-deck { position: relative; width: 100vw; height: 100vh; }
+
+      .slide {
+        position: absolute;
+        inset: 0;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        padding: 4vh 6vw;
+        background: #fdfdfd;
+        color: #333;
+        overflow-y: auto;
+        font-size: clamp(14px, 2vw, 22px);
+        line-height: 1.6;
+      }
+
+      .slide.active { display: flex; }
+
+      /* Typography */
+      .slide h1 { font-size: 1.9em; color: #1a1a2e; margin-bottom: 0.4em; }
+      .slide h2 { font-size: 1.35em; color: #16213e; margin-bottom: 0.4em; }
+      .slide h3 { font-size: 1.1em; color: #0f3460; margin-bottom: 0.3em; }
+      .slide p  { margin-bottom: 0.6em; }
+
+      .slide ul, .slide ol { padding-left: 1.5em; margin-bottom: 0.6em; }
+      .slide li { margin-bottom: 0.25em; }
+      .slide strong { color: #1a237e; }
+
+      /* Code */
+      .slide code {
+        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+        font-size: 0.85em;
+        background: #f0f0f5;
+        padding: 0.15em 0.35em;
+        border-radius: 4px;
+      }
+      .slide pre {
+        background: #f4f4f8;
+        padding: 0.8em 1em;
+        border-radius: 6px;
+        overflow-x: auto;
+        margin-bottom: 0.6em;
+        border: 1px solid #e0e0e0;
+      }
+      .slide pre code { background: none; padding: 0; font-size: 0.8em; }
+
+      /* Tables */
+      .slide table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 0.9em; }
+      .slide th, .slide td { border: 1px solid #ddd; padding: 0.4em 0.7em; text-align: left; }
+      .slide th { background: #e8eaf6; font-weight: 600; }
+
+      /* Blockquote */
+      .slide blockquote {
+        border-left: 4px solid #5c6bc0;
+        padding: 0.5em 1em;
+        margin: 0.6em 0;
+        background: #f5f5ff;
+        color: #555;
+        font-style: italic;
+        border-radius: 0 6px 6px 0;
+      }
+
+      /* Links */
+      .slide a { color: #3949ab; text-decoration: none; }
+      .slide a:hover { text-decoration: underline; }
+
+      /* Dark slides (title, section, thanks) */
+      .slide.dark {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        color: #e0e0e0;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+      }
+      .slide.dark h1 { color: #fff; font-size: 2.2em; }
+      .slide.dark h2 { color: #b0bec5; font-weight: 400; font-size: 1.3em; }
+      .slide.dark p  { color: #cfd8dc; max-width: 700px; }
+      .slide.dark strong { color: #e0e0ff; }
+      .slide.dark a { color: #90caf9; }
+      .slide.dark blockquote { border-left-color: #ce93d8; background: rgba(255,255,255,0.07); color: #e0e0e0; }
+
+      .slide.section {
+        background: linear-gradient(135deg, #0f3460 0%, #533483 100%);
+        color: #fff;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+      }
+      .slide.section h1 { color: #fff; font-size: 2.2em; }
+      .slide.section h2 { color: #ce93d8; font-weight: 400; }
+
+      /* Slide number */
+      .slide-number {
+        position: fixed;
+        bottom: 1.5vh;
+        right: 2vw;
+        font-size: 0.8em;
+        color: #999;
+        z-index: 10;
+        pointer-events: none;
+      }
+      .slide.dark ~ .slide-number,
+      .slide.section ~ .slide-number { color: rgba(255,255,255,0.4); }
+
+      /* Navigation controls */
+      .nav-controls {
+        position: fixed;
+        bottom: 1.5vh;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+      }
+      .nav-btn {
+        background: rgba(0,0,0,0.15);
+        border: none;
+        color: #555;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .nav-btn:hover { background: rgba(0,0,0,0.3); color: #fff; }
+
+      /* Progress bar */
+      .progress-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #5c6bc0, #ce93d8);
+        transition: width 0.3s ease;
+        z-index: 10;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="progress-bar" id="progress"></div>
+
+    <div class="slide-deck" id="deck">
+
+      <!-- ==================== TITLE ==================== -->
+      <div class="slide dark">
+        <h1>🤖 Markdown Files in AI</h1>
+        <h2>A 5-Slide Presentation</h2>
+        <p>This presentation explores how <strong>Markdown (MD) files</strong> play a vital role in the world of <strong>Artificial Intelligence</strong> — from documentation and model cards to reproducibility and beyond.</p>
+      </div>
+
+      <!-- ==================== TABLE OF CONTENTS ==================== -->
+      <div class="slide">
+        <h2>📋 Table of Contents</h2>
+        <table>
+          <thead><tr><th>Slide</th><th>Topic</th></tr></thead>
+          <tbody>
+            <tr><td>Slide 1</td><td>📝 Introduction to Markdown (MD) Files</td></tr>
+            <tr><td>Slide 2</td><td>🔬 Role of Markdown Files in AI Projects</td></tr>
+            <tr><td>Slide 3</td><td>🃏 Markdown for AI Documentation &amp; Model Cards</td></tr>
+            <tr><td>Slide 4</td><td>🛠️ Tools &amp; Platforms Using Markdown in AI</td></tr>
+            <tr><td>Slide 5</td><td>🚀 Future of Markdown in AI &amp; Conclusion</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ==================== WHAT YOU WILL LEARN ==================== -->
+      <div class="slide">
+        <h2>🎯 What You Will Learn</h2>
+        <ul>
+          <li>What Markdown files are and why they matter in tech and AI communities</li>
+          <li>How Markdown is used throughout the AI/ML development lifecycle</li>
+          <li>The role of Markdown in AI model cards and dataset documentation</li>
+          <li>Key tools and platforms that use Markdown in AI workflows</li>
+          <li>Where Markdown is headed in the era of large language models</li>
+        </ul>
+      </div>
+
+      <!-- ==================== SLIDE 1 SECTION TITLE ==================== -->
+      <div class="slide section">
+        <h1>📝 Slide 1</h1>
+        <h2>Introduction to Markdown (MD) Files</h2>
+      </div>
+
+      <!-- What Are Markdown Files? -->
+      <div class="slide">
+        <h2>What Are Markdown Files?</h2>
+        <p><strong>Markdown</strong> is a lightweight markup language that lets you add formatting to plain text documents. Files use the <code>.md</code> or <code>.markdown</code> extension and can be rendered as styled HTML by tools like GitHub, VS Code, or Jupyter Notebooks.</p>
+        <pre><code># This is a Heading
+**Bold text**, _italic text_, and `inline code`.
+
+- Bullet point one
+- Bullet point two
+
+[Link text](https://example.com)</code></pre>
+      </div>
+
+      <!-- History and Origin -->
+      <div class="slide">
+        <h2>🕰️ History and Origin of Markdown</h2>
+        <ul>
+          <li>Created by <strong>John Gruber</strong> and <strong>Aaron Swartz</strong> in <strong>2004</strong></li>
+          <li>Designed to be readable as plain text and convertible to HTML</li>
+          <li>Inspired by conventions used in plain-text emails of the era</li>
+          <li>Quickly adopted by developers, writers, and scientists worldwide</li>
+          <li>Today, multiple flavors exist: <strong>CommonMark</strong>, <strong>GitHub Flavored Markdown (GFM)</strong>, <strong>MultiMarkdown</strong>, and more</li>
+        </ul>
+      </div>
+
+      <!-- Why Markdown Is Popular -->
+      <div class="slide">
+        <h2>🌟 Why Markdown Is Popular in Tech and AI Communities</h2>
+        <ul>
+          <li>✅ <strong>Human-readable</strong> — no special tools needed to read raw files</li>
+          <li>✅ <strong>Version-control friendly</strong> — plain text works perfectly with Git</li>
+          <li>✅ <strong>Platform-agnostic</strong> — renders on GitHub, GitLab, Jupyter, Notion, etc.</li>
+          <li>✅ <strong>Low barrier to entry</strong> — minimal syntax to learn</li>
+          <li>✅ <strong>Extensible</strong> — supports HTML, LaTeX (math), tables, and diagrams</li>
+          <li>✅ <strong>AI-training-friendly</strong> — plain text is easy for LLMs to parse and generate</li>
+        </ul>
+      </div>
+
+      <!-- Markdown Syntax Overview -->
+      <div class="slide">
+        <h2>🔤 Basic Markdown Syntax Overview</h2>
+        <table>
+          <thead><tr><th>Element</th><th>Syntax</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Heading</td><td><code># H1</code> / <code>## H2</code></td><td>Heading levels</td></tr>
+            <tr><td>Bold</td><td><code>**text**</code></td><td><strong>text</strong></td></tr>
+            <tr><td>Italic</td><td><code>_text_</code></td><td><em>text</em></td></tr>
+            <tr><td>Code</td><td><code>`code`</code></td><td><code>code</code></td></tr>
+            <tr><td>Link</td><td><code>[label](url)</code></td><td>Clickable link</td></tr>
+            <tr><td>Image</td><td><code>![alt](url)</code></td><td>Inline image</td></tr>
+            <tr><td>List</td><td><code>- item</code></td><td>Bullet list</td></tr>
+            <tr><td>Quote</td><td><code>&gt; text</code></td><td>Blockquote</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ==================== SLIDE 2 SECTION TITLE ==================== -->
+      <div class="slide section">
+        <h1>🔬 Slide 2</h1>
+        <h2>Role of Markdown Files in AI Projects</h2>
+      </div>
+
+      <!-- How Markdown Is Used in AI Documentation -->
+      <div class="slide">
+        <h2>📄 How Markdown Is Used in AI Documentation</h2>
+        <p>Markdown has become the <strong>de facto standard</strong> for documenting AI and machine learning projects. It powers:</p>
+        <ul>
+          <li><strong>README files</strong> — the front page of every AI repository</li>
+          <li><strong>Experiment logs</strong> — tracking hyperparameters, results, and observations</li>
+          <li><strong>Wikis and guides</strong> — step-by-step tutorials for using AI models</li>
+          <li><strong>API documentation</strong> — describing endpoints and usage examples</li>
+        </ul>
+      </div>
+
+      <!-- README Files in AI/ML -->
+      <div class="slide">
+        <h2>📁 README Files in AI/ML Repositories</h2>
+        <p>A great <code>README.md</code> is essential for any AI project. It typically includes:</p>
+        <pre><code># MyAIModel 🤖
+&gt; A state-of-the-art text classification model.
+
+## 🚀 Quickstart
+pip install myaimodel
+
+## 📊 Performance
+| Dataset | Accuracy | F1 Score |
+|---------|----------|----------|
+| GLUE    | 92.4%    | 91.8%    |
+| SST-2   | 95.1%    | 94.9%    |</code></pre>
+      </div>
+
+      <!-- Documenting AI Models, Datasets, and Experiments -->
+      <div class="slide">
+        <h2>🗂️ Documenting AI Models, Datasets, and Experiments</h2>
+        <h3>Model Documentation</h3>
+        <ul>
+          <li>Architecture description (layers, parameters, training details)</li>
+          <li>Evaluation metrics and benchmark results</li>
+          <li>Known limitations and biases</li>
+        </ul>
+        <h3>Dataset Documentation</h3>
+        <ul>
+          <li>Data sources and collection methods</li>
+          <li>Preprocessing steps</li>
+          <li>Data statistics (size, class distribution, language)</li>
+        </ul>
+      </div>
+
+      <!-- Markdown in Jupyter Notebooks -->
+      <div class="slide">
+        <h2>📓 Markdown in Jupyter Notebooks for AI Workflows</h2>
+        <p>Jupyter Notebooks (<code>.ipynb</code>) mix <strong>code cells</strong> with <strong>Markdown cells</strong>, enabling:</p>
+        <ul>
+          <li>📌 Rich explanations alongside executable code</li>
+          <li>📊 Inline charts with captions written in Markdown</li>
+          <li>🧮 Mathematical formulas using LaTeX syntax</li>
+          <li>🗒️ Step-by-step data science walkthroughs shared on <strong>Kaggle</strong> and <strong>Google Colab</strong></li>
+        </ul>
+      </div>
+
+      <!-- ==================== SLIDE 3 SECTION TITLE ==================== -->
+      <div class="slide section">
+        <h1>🃏 Slide 3</h1>
+        <h2>Markdown for AI Documentation &amp; Model Cards</h2>
+      </div>
+
+      <!-- What Are AI Model Cards -->
+      <div class="slide">
+        <h2>🤔 What Are AI Model Cards and Why They Matter?</h2>
+        <p>A <strong>Model Card</strong> is a short document that provides key facts about an AI model, including:</p>
+        <ul>
+          <li><strong>Intended use</strong> — what the model is designed for</li>
+          <li><strong>Evaluation results</strong> — how well the model performs and on what benchmarks</li>
+          <li><strong>Limitations and biases</strong> — known failure modes and fairness considerations</li>
+          <li><strong>Ethical considerations</strong> — potential misuse and societal impact</li>
+        </ul>
+        <p>Model cards promote <strong>transparency</strong>, <strong>accountability</strong>, and <strong>responsible AI</strong> deployment.</p>
+        <blockquote>📌 First introduced by Google researchers in the paper <em>"Model Cards for Model Reporting"</em> (Mitchell et al., 2019).</blockquote>
+      </div>
+
+      <!-- Using Markdown to Create Model Cards -->
+      <div class="slide">
+        <h2>🤗 Using Markdown to Create Model Cards (Hugging Face)</h2>
+        <p>Hugging Face hosts thousands of AI models — every one is documented with a <strong>Markdown model card</strong>:</p>
+        <pre><code>---
+language: en
+license: apache-2.0
+tags:
+  - text-classification
+  - sentiment-analysis
+---
+
+# My Sentiment Model 🎭
+## Model Description
+This model classifies text as positive or negative sentiment.
+## Intended Uses &amp; Limitations
+- ✅ Suitable for English social media text
+- ❌ Not suitable for medical or legal documents</code></pre>
+      </div>
+
+      <!-- Documenting Datasets with Markdown -->
+      <div class="slide">
+        <h2>📊 Documenting Datasets with Markdown</h2>
+        <p>Inspired by <em>"Datasheets for Datasets"</em> (Gebru et al., 2018):</p>
+        <pre><code># Dataset Card: MyTextDataset 📚
+
+## Dataset Summary
+A collection of 50,000 news articles for topic classification.
+
+## Dataset Structure
+- Size: 50,000 samples
+- Languages: English
+- Labels: Politics, Sports, Technology, Health
+
+## Considerations for Using the Data
+- May contain reporting bias from specific outlets
+- Not suitable for time-sensitive applications</code></pre>
+      </div>
+
+      <!-- Best Practices for AI Project Documentation -->
+      <div class="slide">
+        <h2>✅ Best Practices for AI Project Documentation</h2>
+        <table>
+          <thead><tr><th>Practice</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>🗂️ Use clear headings</td><td>Organize with <code>#</code>, <code>##</code>, <code>###</code> for hierarchy</td></tr>
+            <tr><td>📋 Include a quick-start section</td><td>Show how to install and run in &lt; 5 lines</td></tr>
+            <tr><td>📊 Add performance tables</td><td>Compare metrics with baselines</td></tr>
+            <tr><td>🔗 Link to related resources</td><td>Papers, datasets, demos, notebooks</td></tr>
+            <tr><td>⚠️ Document limitations</td><td>Be transparent about what the model cannot do</td></tr>
+            <tr><td>🔄 Keep docs up to date</td><td>Update the README with every new release</td></tr>
+            <tr><td>🌍 Add a license section</td><td>Clearly state terms of use</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ==================== SLIDE 4 SECTION TITLE ==================== -->
+      <div class="slide section">
+        <h1>🛠️ Slide 4</h1>
+        <h2>Tools &amp; Platforms Using Markdown in AI</h2>
+      </div>
+
+      <!-- GitHub & GitHub Pages -->
+      <div class="slide">
+        <h2>🐙 GitHub &amp; GitHub Pages for AI Projects</h2>
+        <p><strong>GitHub</strong> is the #1 platform for open-source AI — and Markdown is at the heart of it:</p>
+        <ul>
+          <li>Every repository has a <code>README.md</code> rendered as the project's landing page</li>
+          <li><strong>Issues and Pull Requests</strong> support full Markdown formatting</li>
+          <li><strong>GitHub Pages</strong> turns Markdown files into static websites using Jekyll</li>
+          <li>Projects like <strong>TensorFlow</strong>, <strong>PyTorch</strong>, <strong>Hugging Face Transformers</strong>, and <strong>scikit-learn</strong> all rely heavily on Markdown documentation</li>
+        </ul>
+      </div>
+
+      <!-- Jupyter Notebooks -->
+      <div class="slide">
+        <h2>📓 Jupyter Notebooks (Markdown Cells)</h2>
+        <p>Jupyter Notebooks are the gold standard for interactive AI research:</p>
+        <ul>
+          <li><strong>Markdown cells</strong> let researchers annotate code with rich text, images, and math</li>
+          <li>Supports <strong>LaTeX</strong> for mathematical notation</li>
+          <li>Notebooks can be <strong>exported to HTML or PDF</strong>, with Markdown rendered beautifully</li>
+          <li>Platforms: <strong>Jupyter Lab</strong>, <strong>Google Colab</strong>, <strong>Kaggle Notebooks</strong>, <strong>VS Code Notebooks</strong></li>
+        </ul>
+      </div>
+
+      <!-- Hugging Face -->
+      <div class="slide">
+        <h2>🤗 Hugging Face (Model Cards in MD)</h2>
+        <p>Hugging Face has standardized Markdown as the format for all AI model and dataset cards:</p>
+        <ul>
+          <li>Every model on <a href="https://huggingface.co">huggingface.co</a> has a <code>README.md</code> model card</li>
+          <li>YAML front matter provides structured metadata parsed by the platform</li>
+          <li>The <strong>Hub</strong> renders Markdown with syntax highlighting, tables, and math</li>
+          <li>Supports <strong>dataset cards</strong>, <strong>space cards</strong>, and <strong>collection README files</strong></li>
+          <li>Powers discoverability of <strong>500,000+ models</strong> and <strong>100,000+ datasets</strong></li>
+        </ul>
+      </div>
+
+      <!-- MkDocs / Docusaurus -->
+      <div class="slide">
+        <h2>📚 MkDocs / Docusaurus for AI Documentation Sites</h2>
+        <p>For larger AI projects needing full documentation websites:</p>
+        <h3>MkDocs</h3>
+        <pre><code>site_name: My AI Library
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - API Reference: api.md
+theme:
+  name: material</code></pre>
+        <p>Used by: <strong>LangChain</strong>, <strong>FastAI</strong>, <strong>ONNX Runtime</strong></p>
+      </div>
+
+      <!-- VS Code Extensions -->
+      <div class="slide">
+        <h2>💻 VS Code Markdown Extensions for AI Developers</h2>
+        <table>
+          <thead><tr><th>Extension</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Markdown All in One</strong></td><td>Shortcuts, preview, TOC generation</td></tr>
+            <tr><td><strong>Markdown Preview Enhanced</strong></td><td>Advanced rendering with math &amp; diagrams</td></tr>
+            <tr><td><strong>Mermaid Markdown</strong></td><td>Create flowcharts and diagrams in MD</td></tr>
+            <tr><td><strong>Markdown PDF</strong></td><td>Export Markdown to PDF</td></tr>
+            <tr><td><strong>Jupyter</strong></td><td>Edit notebooks with rich Markdown cells</td></tr>
+            <tr><td><strong>GitHub Copilot</strong></td><td>AI-powered Markdown writing assistance</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ==================== SLIDE 5 SECTION TITLE ==================== -->
+      <div class="slide section">
+        <h1>🚀 Slide 5</h1>
+        <h2>Future of Markdown in AI &amp; Conclusion</h2>
+      </div>
+
+      <!-- AI-Powered Markdown Generation -->
+      <div class="slide">
+        <h2>🤖 AI-Powered Markdown Generation</h2>
+        <p>Large Language Models (LLMs) are transforming how Markdown documentation is created:</p>
+        <ul>
+          <li><strong>GitHub Copilot</strong> and <strong>ChatGPT</strong> can generate full README files, model cards, and docs from a short prompt</li>
+          <li>AI tools can automatically extract docstrings and create Markdown API references</li>
+          <li>LLMs can summarize research papers and output structured Markdown summaries</li>
+          <li>Tools like <strong>Mintlify</strong> and <strong>Readme.so</strong> use AI to streamline documentation workflows</li>
+        </ul>
+      </div>
+
+      <!-- Markdown as a Standard in AI Reproducibility -->
+      <div class="slide">
+        <h2>🔁 Markdown as a Standard in AI Reproducibility</h2>
+        <p>Reproducibility is a critical challenge in AI research — Markdown plays a key role:</p>
+        <ul>
+          <li>📋 <strong>Experiment documentation</strong> — Markdown logs capture exactly how experiments were run</li>
+          <li>🧬 <strong>Model cards</strong> — standardized Markdown format ensures reproducible model reporting</li>
+          <li>📦 <strong>Environment documentation</strong> — <code>requirements.txt</code> and <code>environment.yml</code> files explain setup</li>
+          <li>🔬 <strong>Research papers → Markdown</strong> — tools like <strong>Pandoc</strong> convert academic papers to/from MD</li>
+          <li>🏆 <strong>ML competitions</strong> — Kaggle and DrivenData require Markdown notebooks for submissions</li>
+        </ul>
+      </div>
+
+      <!-- Key Takeaways -->
+      <div class="slide">
+        <h2>📌 Key Takeaways &amp; Summary</h2>
+        <table>
+          <thead><tr><th>#</th><th>Key Takeaway</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>📝 Markdown is the universal language of AI documentation</td></tr>
+            <tr><td>2</td><td>🔬 Every great AI project starts with a great <code>README.md</code></td></tr>
+            <tr><td>3</td><td>🃏 Model cards in Markdown promote responsible and transparent AI</td></tr>
+            <tr><td>4</td><td>🛠️ Platforms like GitHub, Hugging Face, and Jupyter run on Markdown</td></tr>
+            <tr><td>5</td><td>🤖 AI is now helping write Markdown — closing the loop beautifully</td></tr>
+            <tr><td>6</td><td>🔁 Markdown is foundational to AI reproducibility and open science</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Resources and References -->
+      <div class="slide">
+        <h2>📚 Resources and References</h2>
+        <ul>
+          <li>📖 <a href="https://www.markdownguide.org/">Markdown Guide</a> — comprehensive Markdown reference</li>
+          <li>📖 <a href="https://github.github.com/gfm/">GitHub Flavored Markdown Spec</a></li>
+          <li>🤗 <a href="https://huggingface.co/docs/hub/model-cards">Hugging Face Model Cards Guide</a></li>
+          <li>📄 <a href="https://arxiv.org/abs/1810.03993">Model Cards for Model Reporting</a> (Mitchell et al., 2019)</li>
+          <li>📄 <a href="https://arxiv.org/abs/1803.09010">Datasheets for Datasets</a> (Gebru et al., 2018)</li>
+          <li>🛠️ <a href="https://www.mkdocs.org/">MkDocs</a> | <a href="https://docusaurus.io/">Docusaurus</a> | <a href="https://jupyter.org/">Jupyter</a></li>
+        </ul>
+      </div>
+
+      <!-- Thank You -->
+      <div class="slide dark">
+        <h1>🎉 Thank You!</h1>
+        <blockquote>"Write the docs. Ship the model. Change the world."</blockquote>
+        <p>Markdown is more than a formatting tool — it's the <strong>language of collaboration</strong> in the AI era.<br>Simple, powerful, and everywhere.</p>
+        <p style="margin-top:1.5em;font-size:0.8em;color:#90a4ae;">Use ← → arrow keys or click the buttons below to navigate slides</p>
+      </div>
+
+    </div>
+
+    <!-- Slide number display -->
+    <div class="slide-number" id="slideNum"></div>
+
+    <!-- Navigation buttons -->
+    <div class="nav-controls">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous slide">◀</button>
+      <button class="nav-btn" id="nextBtn" aria-label="Next slide">▶</button>
+    </div>
+
+    <script>
+      (function () {
+        var slides = document.querySelectorAll('.slide');
+        var current = 0;
+        var total = slides.length;
+
+        function showSlide(index) {
+          if (index < 0 || index >= total) return;
+          slides[current].classList.remove('active');
+          current = index;
+          slides[current].classList.add('active');
+          document.getElementById('slideNum').textContent = (current + 1) + ' / ' + total;
+          document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+        }
+
+        function next() { showSlide(current + 1); }
+        function prev() { showSlide(current - 1); }
+
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); next(); }
+          if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); prev(); }
+          if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+          if (e.key === 'End') { e.preventDefault(); showSlide(total - 1); }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', next);
+        document.getElementById('prevBtn').addEventListener('click', prev);
+
+        /* Touch / swipe support */
+        var touchStartX = 0;
+        document.addEventListener('touchstart', function (e) { touchStartX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', function (e) {
+          var diff = e.changedTouches[0].screenX - touchStartX;
+          if (Math.abs(diff) > 50) { diff > 0 ? prev() : next(); }
+        });
+
+        showSlide(0);
+      })();
+    </script>
+  </body>
+</html>
